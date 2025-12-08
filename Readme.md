@@ -11,18 +11,15 @@ A fully automated, cashier-less retail checkout system powered by Computer Visio
 
 ## 🌟 Key Features
 
-This project implements **10 Advanced Features** to simulate a real-world retail environment:
+This project implements **Several Advanced Features** to simulate a real-world retail environment:
 
 1.  **✅ Multi-Object Tracking:** Uses ByteTrack to ensure items are counted only once, even if they stay in the frame.
 2.  **🗣️ Voice Feedback:** Audio confirmation ("Maggi added - ₹14") using `pyttsx3`.
 3.  **🧾 Auto-Invoice Generation:** Generates a professional PDF receipt instantly upon checkout.
 4.  **💳 UPI QR Payment:** Dynamically generates a UPI QR code for contactless payment.
-5.  **📦 Live Inventory Database:** SQLite backend automatically updates stock levels after every sale.
-6.  **📊 Admin Dashboard:** A secured tab for store owners to view sales analytics and manage stock.
-7.  **🛡️ Fraud Detection:** Detects and alerts if an unknown/unlabeled item is placed in the scanning area.
-8.  **🎥 Multi-Angle Simulation:** Simulates a top-down camera view using image processing techniques.
-9.  **⚖️ Weight Sensor Simulation:** Randomly simulates weight discrepancies to demonstrate IoT integration logic.
-10. **👤 User Profile & History:** Login system with persistent purchase history and wallet balance.
+5.  **📊 Admin Dashboard:** A secured tab for store owners to view sales analytics and manage stock.
+6.  **🎥 Multi-Angle Simulation:** Simulates a top-down camera view using image processing techniques.
+7. **👤 User Profile & History:** Login system with persistent purchase history and wallet balance.
 
 ---
 
@@ -42,6 +39,7 @@ SmartCheckout/
 ├── requirements.txt      # Python dependencies
 ├── data.yaml             # YOLO configuration file
 └── README.md             # Project Documentation
+```
 
 ---
 
@@ -57,9 +55,21 @@ The YOLOv8 Nano model was trained on a custom dataset for **30 epochs**. Below a
 
 ### Training Graphs
 
-![Confusion Matrix](metrics/confusion_matrix.png: Confusion Matrix showing classification accuracy.*
+*Results* 
 
-![F1-Confidence Curve](metrics/BoxF1_curve.png: F1-Confidence Curve.*
+<img width="2400" height="1200" alt="results" src="https://github.com/user-attachments/assets/ff790723-2491-42f4-b81c-eb47ae74121a" />
+
+--- 
+*Confusion Matrix*
+
+<img width="3000" height="2250" alt="confusion_matrix" src="https://github.com/user-attachments/assets/7a48e754-57f1-454c-a356-e2297aba45f2" />
+
+---
+*F1-Curve*
+
+<img width="2250" height="1500" alt="BoxF1_curve" src="https://github.com/user-attachments/assets/fa8b30e1-9596-484d-a164-8eb19ab5590c" />
+
+---
 
 ***
 
