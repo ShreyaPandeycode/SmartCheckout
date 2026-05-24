@@ -8,3 +8,5 @@ qrcode
 pillow
 pyttsx3
 scikit-learn
+python-dotenv
+razorpay

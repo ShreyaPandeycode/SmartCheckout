@@ -1,6 +1,7 @@
 # Ignore Virtual Environment (CRITICAL)
 venv/
 env/
+.env
 
 # Ignore Python cache files
 __pycache__/
@@ -22,3 +23,4 @@ datasets/
 
 # Ignore system files
 .DS_Store
+*db

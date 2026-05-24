@@ -40,29 +40,22 @@ def process_data():
     valid_entries = []
 
     print("Parsing CSV and matching filenames...")
-
+    
+    # Create a dictionary of annotations from CSV for faster lookup
+    csv_annotations = {}
     for index, row in df.iterrows():
-        try:
-            # CSV Name: "dcf5c000-20251005_202456.jpg"
-            csv_path = row['image']
-            csv_filename = csv_path.split('/')[-1] 
-            
-            # matching logic
-            # We check if any of your local files are part of the CSV filename
-            matched_file = None
-            for local_f in local_files:
-                if local_f in csv_filename: 
-                    matched_file = local_f
-                    break
-            
-            if not matched_file:
-                # print(f"No match for: {csv_filename}")
-                continue
+        csv_filename = row['image'].split('/')[-1]
+        csv_annotations[csv_filename] = json.loads(row['label'])
 
-            # Parse Labels
-            labels = json.loads(row['label'])
-            yolo_lines = []
-
+    # Iterate over ALL local files (This includes your new background images!)
+    for local_f in local_files:
+        yolo_lines = []
+        
+        # Find if this local file has annotations in the CSV
+        matched_csv_key = next((k for k in csv_annotations.keys() if local_f in k), None)
+        
+        if matched_csv_key:
+            labels = csv_annotations[matched_csv_key]
             for label in labels:
                 if 'rectanglelabels' not in label: continue
                 class_name = label['rectanglelabels'][0]
@@ -72,17 +65,15 @@ def process_data():
                     cx, cy, nw, nh = convert_to_yolo(label['x'], label['y'], label['width'], label['height'])
                     yolo_lines.append(f"{cid} {cx:.6f} {cy:.6f} {nw:.6f} {nh:.6f}")
 
-            if yolo_lines:
-                valid_entries.append({
-                    'src_path': os.path.join(SOURCE_IMG_DIR, matched_file),
-                    'filename': matched_file,
-                    'labels': yolo_lines
-                })
+        # APPEND REGARDLESS OF LABELS! 
+        # If yolo_lines is empty, YOLO treats it as a Background/Negative image.
+        valid_entries.append({
+            'src_path': os.path.join(SOURCE_IMG_DIR, local_f),
+            'filename': local_f,
+            'labels': yolo_lines
+        })
 
-        except Exception as e:
-            print(f"Error on row {index}: {e}")
-
-    print(f"Successfully matched {len(valid_entries)} images.")
+    print(f"Successfully processed {len(valid_entries)} images (including background images).")
 
     if len(valid_entries) == 0:
         print("CRITICAL: No images matched! Check if your 'raw_images' folder is empty.")
@@ -101,7 +92,7 @@ def process_data():
     save_split(train, 'train')
     save_split(val, 'val')
 
-    # Create YAML
+    # Create YAML (No changes needed here, nc remains 5)
     yaml_content = f"path: ../{OUTPUT_DIR}\ntrain: images/train\nval: images/val\nnc: {len(class_map)}\nnames: {list(class_map.keys())}"
     with open('data.yaml', 'w') as f:
         f.write(yaml_content)

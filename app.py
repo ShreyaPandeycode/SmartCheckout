@@ -13,6 +13,19 @@ import qrcode
 from PIL import Image
 import os
 import time
+import razorpay
+
+# --- RAZORPAY INITIALIZATION ---
+# Replace these with your actual test keys from the Razorpay Dashboard
+RAZORPAY_KEY_ID = "rzp_test_StGnQlytLdXBrF" 
+RAZORPAY_KEY_SECRET = "xlyOTx7VsaD5Xi8tVwXs7DRc"
+
+try:
+    rzp_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+except Exception as e:
+    rzp_client = None
+    print("Razorpay initialization failed:", e)
+# -------------------------------
 
 # config
 st.set_page_config(page_title="Smart Retail System", layout="wide", page_icon="🛒")
@@ -263,6 +276,44 @@ if menu == "🛒 Live Checkout":
             with c2:
                 if st.button("✅ Pay & Print", type="primary"):
                     pdf_file = generate_pdf(st.session_state['cart'], total_amount, st.session_state['user'])
+                    
+                    # --- RAZORPAY INTEGRATION ---
+                    if rzp_client:
+                        try:
+                            # Create Razorpay Payment Link (Amount must be in paise, so multiply by 100)
+                            payment_data = {
+                                "amount": int(total_amount * 100), 
+                                "currency": "INR",
+                                "description": f"Smart Retail Checkout - {st.session_state['user']}",
+                                "customer": {
+                                    "name": st.session_state['user'],
+                                    "contact": "9876543210" # Realistic dummy number
+                                },
+                                "notify": {"sms": False, "email": False},
+                                "reminder_enable": False
+                            }
+                            payment_link = rzp_client.payment_link.create(payment_data)
+                            payment_url = payment_link['short_url']
+                            
+                            st.success("Invoice Generated! Scan QR to Pay.")
+                            
+                            # Generate QR Code for the Razorpay Link
+                            qr_img = qrcode.make(payment_url).get_image()
+                            st.image(qr_img, width=200, caption="Scan to Pay via Razorpay")
+                            st.markdown(f"[Click here to pay manually if QR fails]({payment_url})")
+                            
+                        except Exception as e:
+                            st.error(f"Razorpay Error: {e}")
+                            # Fallback to standard UPI if API fails
+                            upi_url = f"upi://pay?pa=shop@upi&pn=SmartShop&am={total_amount}"
+                            st.image(qrcode.make(upi_url).get_image(), width=150, caption="Fallback UPI QR")
+                    else:
+                        # Fallback to standard UPI if Razorpay isn't configured
+                        upi_url = f"upi://pay?pa=shop@upi&pn=SmartShop&am={total_amount}"
+                        st.image(qrcode.make(upi_url).get_image(), width=150, caption="Standard UPI QR")
+                    # ----------------------------
+
+                    # Update Database
                     conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     for item, info in st.session_state['cart'].items():
@@ -272,9 +323,6 @@ if menu == "🛒 Live Checkout":
                     conn.commit()
                     conn.close()
                     
-                    st.success("Paid!")
-                    upi_url = f"upi://pay?pa=shop@upi&pn=SmartShop&am={total_amount}"
-                    st.image(qrcode.make(upi_url).get_image(), width=150, caption="UPI")
                     with open(pdf_file, "rb") as f:
                         st.download_button("Download PDF", f, file_name="Invoice.pdf")
         else:
